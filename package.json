@@ -1,0 +1,24 @@
+{
+    "name":         "VideoConvertJS",
+    "version":      "0.0.1",
+    "description":  "A .mov to .mp4 video converter built in Node.js",
+    "main":         "main.js",
+    "scripts":      {
+        "start":    "electron ."
+    },
+    "repository":   "https://github.com/WayToGoSkills/VideoConvertJS",
+    "keywords": [
+        "iPhone",
+        "video",
+        "convert",
+        "mp4",
+        "mov",
+        "avi",
+        "mpg",
+        "stabilize",
+        "handbrake",
+        "ffmpeg"
+    ],
+    "author":       "WayToGoSkills",
+    "license":      "MIT"
+}
