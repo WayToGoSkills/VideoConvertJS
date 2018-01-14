@@ -1,12 +1,12 @@
 {
-    "name":         "VideoConvertJS",
-    "version":      "0.0.1",
-    "description":  "A .mov to .mp4 video converter built in Node.js",
-    "main":         "main.js",
-    "scripts":      {
-        "start":    "electron ."
+    "name": "VideoConvertJS",
+    "version": "0.0.1",
+    "description": "A .mov to .mp4 video converter built in Node.js",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron ."
     },
-    "repository":   "https://github.com/WayToGoSkills/VideoConvertJS",
+    "repository": "https://github.com/WayToGoSkills/VideoConvertJS",
     "keywords": [
         "iPhone",
         "video",
@@ -19,6 +19,9 @@
         "handbrake",
         "ffmpeg"
     ],
-    "author":       "WayToGoSkills",
-    "license":      "MIT"
+    "author": "WayToGoSkills",
+    "license": "MIT",
+    "devDependencies": {
+        "electron": "^1.7.10"
+    }
 }
