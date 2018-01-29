@@ -30,6 +30,8 @@
         "popper.js": "^1.12.9"
     },
     "dependencies": {
-        "file": "^0.2.2"
+        "file": "^0.2.2",
+        "handbrake-js": "^2.2.2",
+        "walk": "^2.3.9"
     }
 }

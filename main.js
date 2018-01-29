@@ -3,8 +3,11 @@ const path = require('path');
 const url = require('url');
 const ipc = require('electron').ipcMain;
 const dialog = require('electron').dialog;
-const fs = require('fs');
-const file = require('file');
+// const fs = require('fs');
+// const file = require('file');
+const walk = require('walk');
+
+const conv_hb = require('./convert_handbrake.js');
 
 // Keep a global reference of the window object, or the window will be closed
 // automatically when the JavaScript object is garbage collected
@@ -19,7 +22,7 @@ function stopSplashTimer(interval) {
 
 function createMainWindow(splash, start) {
     mainWindow = new BrowserWindow({
-        width:  800,
+        width:  1000,
         height: 600,
 
         // Don't show the window right away.  We will show it in the
@@ -40,7 +43,7 @@ function createMainWindow(splash, start) {
             var now = (new Date()).getTime();
             var elapsed = now - start;
 
-            if (elapsed > 2000) {
+            if (elapsed > 200) {
                 splash.close();
                 mainWindow.show();
                 stopSplashTimer(splashtime);
@@ -49,11 +52,6 @@ function createMainWindow(splash, start) {
             //     console.log('elapsed:', elapsed);
             // }
         }, 100);
-
-
-
-
-
     });
 
     mainWindow.on('closed', function() {
@@ -101,34 +99,51 @@ app.on('activate', function() {
 ipc.on('open-file-dialog', function(event) {
     dialog.showOpenDialog(mainWindow, {
         properties: ['openDirectory']
-    }, function (files) {
-        console.log('files', files);
-        if (files) {
-            // fs.readdir(files[0], function(err, items) {
-            //     console.log(items);
-            //     for (var i = 0; i < items.length; i++) {
-            //         console.log('items[' + i + ']: ', items[i]);
-            //     }
-            // });
-
+    }, function (dir) {
+        console.log('directory', dir);
+        event.sender.send('num_video_files', 0);
+        if (dir) {
+            event.sender.send('set_status', 'Scanning directory...');
             var all_files = [];
+            var allowed_extensions = ['.mov', '.avi', '.mpg', '.mpeg', '.wmv'];
 
-            file.walk(files[0], function(err, dirPath, dirs, files) {
-                console.log('err:', err);
-                console.log('dirPath:', dirPath);
-                console.log('dirs:', dirs);
-                console.log('files:', files);
+            walker = walk.walk(dir[0]);
 
-                all_files.push(files);
+            walker.on('file', function(root, fileStats, next) {
+                console.log('============ walker file ==========');
+                console.log('root:', root);
+                console.log('fileStats:', fileStats);
+                console.log('next:', next);
+
+                var full_path = root + '/' + fileStats.name;
+                // event.sender.send('found_file', full_path);
+                event.sender.send('found_file', root, fileStats.name);
+
+                var ext = path.extname(fileStats.name);
+
+                if (allowed_extensions.indexOf(ext.toLowerCase()) > -1) {
+                    all_files.push(full_path);
+                    event.sender.send('num_video_files', all_files.length);
+                }
+
+                next();
             });
 
-            console.log('all_files:', all_files);
+            walker.on('errors', function (root, nodeStatsArray, next) {
+                console.error('Error happened!');
+                console.error('root:', root);
+                console.error('nodeStatsArray:', nodeStatsArray);
+                next();
+            })
 
+            walker.on('end', function() {
+                console.log('all_files:', all_files);
+                event.sender.send('set_status', 'Scanning directory complete');
+                event.sender.send('found_file', '', '');
+                conv_hb.start_handbrake_conversion(all_files, event);
+            });
 
-
-
-
-            event.sender.send('select_directory', files);
+            event.sender.send('select_directory', dir);
         }
     });
 });
