@@ -28,11 +28,11 @@ function convert_using_handbrake(input_file_array, index, event) {
     }).on('begin', function() {
         event.sender.send('set_status', 'Converting...');
     }).on('progress', function(progress) {
-        var previous_percent = index / input_file_array.length;
-        var future_percent = (index + 1) / input_file_array.length;
+        var previous_percent = index / input_file_array.length * 100;
+        var future_percent = (index + 1) / input_file_array.length * 100;
 
-        var overall_percent = previous_percent + (future_percent - previous_percent) * progress.percentComplete;
-        console.log('Percent Complete:', progress.percentComplete, progress.eta, overall_percent.toFixed(2));
+        var overall_percent = previous_percent + (future_percent - previous_percent) * progress.percentComplete / 100;
+        console.log('Percent Complete:', progress.percentComplete, progress.eta, overall_percent.toFixed(2), index, previous_percent, future_percent);
         event.sender.send('hb_progress',
             progress.percentComplete,
             progress.eta,
