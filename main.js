@@ -123,7 +123,7 @@ ipc.on('open-file-dialog', function(event) {
 
                 if (allowed_extensions.indexOf(ext.toLowerCase()) > -1) {
                     all_files.push(full_path);
-                    event.sender.send('num_video_files', all_files.length);
+                    event.sender.send('num_video_files', 0, all_files.length);
                 }
 
                 next();

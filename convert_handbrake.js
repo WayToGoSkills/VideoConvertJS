@@ -12,8 +12,9 @@ function start_handbrake_conversion(input_file_array, event) {
 
 function convert_using_handbrake(input_file_array, index, event) {
     console.log('input_file:', input_file_array[index]);
+    event.sender.send('num_video_files', index, input_file_array.length);
     var input_file_parse = path.parse(input_file_array[index]);
-    var output_file = input_file_parse.name + '.m4v';
+    var output_file = input_file_parse.dir + path.sep + input_file_parse.name + '.m4v';
 
     console.log('output_file:', output_file);
 
@@ -27,12 +28,17 @@ function convert_using_handbrake(input_file_array, index, event) {
     }).on('begin', function() {
         event.sender.send('set_status', 'Converting...');
     }).on('progress', function(progress) {
-        console.log('Percent Complete:', progress.percentComplete, progress.eta);
+        var previous_percent = index / input_file_array.length;
+        var future_percent = (index + 1) / input_file_array.length;
+
+        var overall_percent = previous_percent + (future_percent - previous_percent) * progress.percentComplete;
+        console.log('Percent Complete:', progress.percentComplete, progress.eta, overall_percent.toFixed(2));
         event.sender.send('hb_progress',
             progress.percentComplete,
             progress.eta,
             progress.fps,
-            progress.task
+            progress.task,
+            overall_percent.toFixed(2)
         );
     }).on('end', function() {
         console.log('END!');

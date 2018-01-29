@@ -17,9 +17,11 @@ ipc.on('found_file', function(event, root, name) {
     document.getElementById('file_input').value = `${name}`;
 });
 
-ipc.on('num_video_files', function(event, num) {
-    console.log('num_video_files:', num);
-    document.getElementById('all_files_complete').innerHTML = `0 / ${num}`;
+ipc.on('num_video_files', function(event, num, total) {
+    console.log('num_video_files:', num, total);
+    document.getElementById('all_files_complete').innerHTML = `${num} / ${total}`;
+    var all_files_percentage = Math.floor(num / total);
+    $(document).find('#all_files_progress_bar').find('.progress-bar').css('width', `${all_files_percentage}%`);
 });
 
 ipc.on('set_status', function(event, msg) {
@@ -27,9 +29,10 @@ ipc.on('set_status', function(event, msg) {
     document.getElementById('status_input').value = `${msg}`;
 });
 
-ipc.on('hb_progress', function(event, percent, eta, fps, task) {
+ipc.on('hb_progress', function(event, percent, eta, fps, task, overall) {
     document.getElementById('current_file_percent').innerHTML = `${percent}%`;
     $(document).find('#current_file_progress_bar').find('.progress-bar').css('width', `${percent}%`);
+    $(document).find('#all_files_progress_bar').find('.progress-bar').css('width', `${overall}%`);
     var status_comment = 'Converting...';
 
     if (task) {
