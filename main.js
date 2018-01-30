@@ -116,7 +116,6 @@ ipc.on('open-file-dialog', function(event) {
                 console.log('next:', next);
 
                 var full_path = root + '/' + fileStats.name;
-                // event.sender.send('found_file', full_path);
                 event.sender.send('found_file', root, fileStats.name);
 
                 var ext = path.extname(fileStats.name);

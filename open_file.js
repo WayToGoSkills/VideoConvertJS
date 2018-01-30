@@ -1,8 +1,13 @@
 const ipc = require('electron').ipcRenderer;
 const selectDirBtn = document.getElementById('select_directory');
+const startBtn = document.getElementById('start');
 
 selectDirBtn.addEventListener('click', function(event) {
     ipc.send('open-file-dialog');
+});
+
+startBtn.addEventListener('click', function(event) {
+    ipc.send('start_pushed');
 });
 
 ipc.on('select_directory', function(event, path) {
@@ -20,8 +25,6 @@ ipc.on('found_file', function(event, root, name) {
 ipc.on('num_video_files', function(event, num, total) {
     console.log('num_video_files:', num, total);
     document.getElementById('all_files_complete').innerHTML = `${num} / ${total}`;
-    var all_files_percentage = Math.floor(num / total);
-    $(document).find('#all_files_progress_bar').find('.progress-bar').css('width', `${all_files_percentage}%`);
 });
 
 ipc.on('set_status', function(event, msg) {
