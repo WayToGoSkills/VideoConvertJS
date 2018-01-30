@@ -3,10 +3,9 @@ const path = require('path');
 const url = require('url');
 const ipc = require('electron').ipcMain;
 const dialog = require('electron').dialog;
-// const fs = require('fs');
-// const file = require('file');
+const fs = require('fs');
 const walk = require('walk');
-
+const ffmpeg = require('fluent-ffmpeg');
 const conv_hb = require('./convert_handbrake.js');
 
 // Keep a global reference of the window object, or the window will be closed
@@ -83,6 +82,40 @@ function createSplashScreen() {
     });
 }
 
+function getRotation(all_files, index, preset, event) {
+    event.sender.send('set_status', 'Finding video rotations...');
+
+    var input_file_parse = path.parse(all_files[index].path);
+    event.sender.send('found_file', input_file_parse.dir, input_file_parse.name + input_file_parse.ext);
+
+    ffmpeg.ffprobe(all_files[index].path, function(err, data) {
+        // console.log('data:', data.streams[0].tags.rotate);
+        if (data.streams[0].tags.rotate) {
+            if (data.streams[0].tags.rotate == 90) {
+                all_files[index].rotation = '90';
+            }
+            else if (data.streams[0].tags.rotate == 180) {
+                all_files[index].rotation = '180';
+            }
+            else if (data.streams[0].tags.rotate == 270) {
+                all_files[index].rotation = '270';
+            }
+
+        }
+        // else {
+        //     all_files[index].rotation = '0';
+        // }
+
+        ++index;
+        if (index < all_files.length) {
+            getRotation(all_files, index, preset, event);
+        } else {
+            console.log('all_files:', all_files);
+            conv_hb.start_handbrake_conversion(all_files, preset, event);
+        }
+    });
+}
+
 app.on('ready', createSplashScreen);
 
 // Quit when all windows have been closed
@@ -101,48 +134,71 @@ ipc.on('open-file-dialog', function(event) {
         properties: ['openDirectory']
     }, function (dir) {
         console.log('directory', dir);
-        event.sender.send('num_video_files', 0);
         if (dir) {
-            event.sender.send('set_status', 'Scanning directory...');
-            var all_files = [];
-            var allowed_extensions = ['.mov', '.avi', '.mpg', '.mpeg', '.wmv'];
-
-            walker = walk.walk(dir[0]);
-
-            walker.on('file', function(root, fileStats, next) {
-                console.log('============ walker file ==========');
-                console.log('root:', root);
-                console.log('fileStats:', fileStats);
-                console.log('next:', next);
-
-                var full_path = root + '/' + fileStats.name;
-                event.sender.send('found_file', root, fileStats.name);
-
-                var ext = path.extname(fileStats.name);
-
-                if (allowed_extensions.indexOf(ext.toLowerCase()) > -1) {
-                    all_files.push(full_path);
-                    event.sender.send('num_video_files', 0, all_files.length);
-                }
-
-                next();
-            });
-
-            walker.on('errors', function (root, nodeStatsArray, next) {
-                console.error('Error happened!');
-                console.error('root:', root);
-                console.error('nodeStatsArray:', nodeStatsArray);
-                next();
-            })
-
-            walker.on('end', function() {
-                console.log('all_files:', all_files);
-                event.sender.send('set_status', 'Scanning directory complete');
-                event.sender.send('found_file', '', '');
-                conv_hb.start_handbrake_conversion(all_files, event);
-            });
-
             event.sender.send('select_directory', dir);
         }
     });
+});
+
+ipc.on('start_pushed', function(event, dir, recursive, reconvert, preset) {
+    // console.log('start_pushed!', dir, recursive, reconvert, preset);
+    event.sender.send('set_status', 'Scanning directory...');
+    event.sender.send('num_video_files', 0);
+
+    var all_files = [];
+    var allowed_extensions = ['.mov', '.avi', '.mpg', '.mpeg', '.wmv'];
+
+    walker = walk.walk(dir);
+
+    walker.on('file', function(root, fileStats, next) {
+        // console.log('============ walker file ==========');
+        // console.log('root:', root);
+        // console.log('fileStats:', fileStats);
+        // console.log('next:', next);
+
+        var full_path = root + path.sep + fileStats.name;
+
+        var full_path_parse = path.parse(full_path);
+        var output_file = full_path_parse.dir + path.sep + full_path_parse.name + '.m4v';
+        event.sender.send('found_file', root, fileStats.name);
+
+        var ext = path.extname(fileStats.name);
+
+        if (allowed_extensions.indexOf(ext.toLowerCase()) > -1) {
+            if (reconvert) {
+                all_files.push({'path': full_path});
+            } else {
+                if (!fs.existsSync(output_file)) {
+                    all_files.push({'path': full_path});
+                }
+            }
+
+            event.sender.send('num_video_files', 0, all_files.length);
+        }
+
+        next();
+    });
+
+    walker.on('errors', function (root, nodeStatsArray, next) {
+        console.error('Error happened!');
+        console.error('root:', root);
+        console.error('nodeStatsArray:', nodeStatsArray);
+        next();
+    });
+
+    walker.on('end', function() {
+        console.log('all_files:', all_files);
+        event.sender.send('set_status', 'Scanning directory complete');
+        event.sender.send('found_file', '', '');
+
+        if (all_files.length > 0) {
+            // conv_hb.start_handbrake_conversion(all_files, preset, event);
+            var rotation_index = 0;
+            getRotation(all_files, rotation_index, preset, event);
+        }
+    });
+});
+
+ipc.on('quit_app', function(event) {
+    app.quit();
 });
