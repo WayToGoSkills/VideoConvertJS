@@ -92,13 +92,13 @@ function getRotation(all_files, index, preset, event) {
         // console.log('data:', data.streams[0].tags.rotate);
         if (data.streams[0].tags.rotate) {
             if (data.streams[0].tags.rotate == 90) {
-                all_files[index].rotation = '90';
+                all_files[index].rotation = 'angle=90';
             }
             else if (data.streams[0].tags.rotate == 180) {
-                all_files[index].rotation = '180';
+                all_files[index].rotation = 'angle=180';
             }
             else if (data.streams[0].tags.rotate == 270) {
-                all_files[index].rotation = '270';
+                all_files[index].rotation = 'angle=270';
             }
 
         }
@@ -110,7 +110,7 @@ function getRotation(all_files, index, preset, event) {
         if (index < all_files.length) {
             getRotation(all_files, index, preset, event);
         } else {
-            console.log('all_files:', all_files);
+            // console.log('all_files:', all_files);
             conv_hb.start_handbrake_conversion(all_files, preset, event);
         }
     });
@@ -133,7 +133,7 @@ ipc.on('open-file-dialog', function(event) {
     dialog.showOpenDialog(mainWindow, {
         properties: ['openDirectory']
     }, function (dir) {
-        console.log('directory', dir);
+        // console.log('directory', dir);
         if (dir) {
             event.sender.send('select_directory', dir);
         }
@@ -187,7 +187,7 @@ ipc.on('start_pushed', function(event, dir, recursive, reconvert, preset) {
     });
 
     walker.on('end', function() {
-        console.log('all_files:', all_files);
+        // console.log('all_files:', all_files);
         event.sender.send('set_status', 'Scanning directory complete');
         event.sender.send('found_file', '', '');
 

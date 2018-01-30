@@ -5,20 +5,20 @@ const path = require('path');
 const hbjs = require('handbrake-js');
 
 function start_handbrake_conversion(input_file_array, preset, event) {
-    console.log('start_handbrake_conversion');
+    // console.log('start_handbrake_conversion');
     var index = 0;
     convert_using_handbrake(input_file_array, index, preset, event);
 }
 
 function convert_using_handbrake(input_file_array, index, preset, event) {
-    console.log('input_file:', input_file_array[index].path);
+    // console.log('input_file:', input_file_array[index].path);
     // console.log(input_file_array[index].rotation);
     event.sender.send('num_video_files', index, input_file_array.length);
     var input_file_parse = path.parse(input_file_array[index].path);
     var output_file = input_file_parse.dir + path.sep + input_file_parse.name + '.m4v';
     var rotation = parseInt(input_file_array[index].rotation);
 
-    console.log('output_file:', output_file);
+    // console.log('output_file:', output_file);
 
     var options = {
         input:      input_file_array[index].path,
@@ -30,7 +30,7 @@ function convert_using_handbrake(input_file_array, index, preset, event) {
         options.rotate = input_file_array[index].rotation;
     }
 
-    console.log('options:', options);
+    // console.log('options:', options);
 
     hbjs.spawn(options).on('start', function() {
         // console.log(input_file_parse.name);
@@ -52,7 +52,7 @@ function convert_using_handbrake(input_file_array, index, preset, event) {
             overall_percent.toFixed(2)
         );
     }).on('end', function() {
-        console.log('END!');
+        // console.log('END!');
         ++index;
         if (index < input_file_array.length) {
             convert_using_handbrake(input_file_array, index, preset, event);
@@ -61,5 +61,5 @@ function convert_using_handbrake(input_file_array, index, preset, event) {
             event.sender.send('found_file', '', '');
             event.sender.send('num_video_files', index, input_file_array.length);
         }
-    }).on('error', console.error).on('output', console.log);
+    });
 }
