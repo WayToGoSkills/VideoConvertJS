@@ -89,7 +89,7 @@ function getRotation(all_files, index, preset, event) {
     event.sender.send('found_file', input_file_parse.dir, input_file_parse.name + input_file_parse.ext);
 
     ffmpeg.ffprobe(all_files[index].path, function(err, data) {
-        // console.log('data:', data.streams[0].tags.rotate);
+        // console.log('data:', data);
         if (data.streams[0].tags.rotate) {
             if (data.streams[0].tags.rotate == 90) {
                 all_files[index].rotation = 'angle=90';
@@ -100,11 +100,11 @@ function getRotation(all_files, index, preset, event) {
             else if (data.streams[0].tags.rotate == 270) {
                 all_files[index].rotation = 'angle=270';
             }
-
         }
-        // else {
-        //     all_files[index].rotation = '0';
-        // }
+
+        if (data.format.tags.creation_time) {
+            all_files[index].creationtime = data.format.tags.creation_time;
+        }
 
         ++index;
         if (index < all_files.length) {
@@ -159,7 +159,7 @@ ipc.on('start_pushed', function(event, dir, recursive, reconvert, preset) {
         var full_path = root + path.sep + fileStats.name;
 
         var full_path_parse = path.parse(full_path);
-        var output_file = full_path_parse.dir + path.sep + full_path_parse.name + '.m4v';
+        var output_file = full_path_parse.dir + path.sep + full_path_parse.name + '.mp4';
         event.sender.send('found_file', root, fileStats.name);
 
         var ext = path.extname(fileStats.name);

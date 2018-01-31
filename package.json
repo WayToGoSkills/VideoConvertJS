@@ -30,6 +30,7 @@
         "popper.js": "^1.12.9"
     },
     "dependencies": {
+        "@ronomon/utimes": "^2.2.0",
         "file": "^0.2.2",
         "fluent-ffmpeg": "^2.1.2",
         "handbrake-js": "^2.2.2",
