@@ -25,7 +25,8 @@ function convert_using_handbrake(input_file_array, index, preset, event) {
     var options = {
         input:      input_file_array[index].path,
         output:     output_file,
-        preset:     preset
+        preset:     preset,
+        optimize:   true
     };
 
     if ('rotation' in input_file_array[index]) {
@@ -69,13 +70,14 @@ function convert_using_handbrake(input_file_array, index, preset, event) {
 }
 
 function setFileDate(original, converted) {
-    var datestring = original.creationtime;
-    var datestring_mod = datestring.replace(' ', 'T') + '-06:00';
-    var btime = new Date(datestring_mod);
     try {
-        fs.utimesSync(converted, btime, btime);
+        var created_time = new Date(original.creationtime);
+        try {
+            fs.utimesSync(converted, created_time, created_time);
+        } catch (error) {
+            console.error(error.toString(), 'created_time', created_time);
+        }
     } catch (error) {
-        console.error(error.toString(), 'btime', btime);
+        console.log('Error setting date!', error);
     }
-
 }

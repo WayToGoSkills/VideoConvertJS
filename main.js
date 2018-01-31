@@ -90,27 +90,40 @@ function getRotation(all_files, index, preset, event) {
 
     ffmpeg.ffprobe(all_files[index].path, function(err, data) {
         // console.log('data:', data);
-        if (data.streams[0].tags.rotate) {
-            if (data.streams[0].tags.rotate == 90) {
-                all_files[index].rotation = 'angle=90';
+        try {
+            if (data.streams[0].tags.rotate) {
+                if (data.streams[0].tags.rotate == 90) {
+                    all_files[index].rotation = 'angle=90';
+                }
+                else if (data.streams[0].tags.rotate == 180) {
+                    all_files[index].rotation = 'angle=180';
+                }
+                else if (data.streams[0].tags.rotate == 270) {
+                    all_files[index].rotation = 'angle=270';
+                }
             }
-            else if (data.streams[0].tags.rotate == 180) {
-                all_files[index].rotation = 'angle=180';
-            }
-            else if (data.streams[0].tags.rotate == 270) {
-                all_files[index].rotation = 'angle=270';
-            }
+        } catch (error) {
+            console.log('Could not set rotation!');
         }
 
-        if (data.format.tags.creation_time) {
-            all_files[index].creationtime = data.format.tags.creation_time;
+        try {
+            if (data.format.tags.creation_time) {
+                all_files[index].creationtime = data.format.tags.creation_time;
+            }
+        } catch (error) {
+            // console.log('Could not set creation time!');
+            // console.log('data:', data);
+            console.log(fs.statSync(all_files[index].path));
+            var stats = fs.statSync(all_files[index].path);
+            all_files[index].creationtime = stats.mtime;
         }
+
 
         ++index;
         if (index < all_files.length) {
             getRotation(all_files, index, preset, event);
         } else {
-            // console.log('all_files:', all_files);
+            console.log('all_files:', all_files);
             conv_hb.start_handbrake_conversion(all_files, preset, event);
         }
     });
