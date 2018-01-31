@@ -69,15 +69,13 @@ function convert_using_handbrake(input_file_array, index, preset, event) {
 }
 
 function setFileDate(original, converted) {
-    console.log('original:', original);
-    // fs.stat(original.path, function(err, stats) {
-    //     console.log(stats);
-    // });
-    console.log('converted:', converted);
     var datestring = original.creationtime;
-    var datestring_mod = datestring.replace(' ', 'T');
-    // var btime = new Date(datestring_mod);
-    var btime = Date.parse(datestring_mod) / 1000;
-    console.log('btime:', btime);
-    fs.utimesSync(converted, parseInt(btime), parseInt(btime));
+    var datestring_mod = datestring.replace(' ', 'T') + '-06:00';
+    var btime = new Date(datestring_mod);
+    try {
+        fs.utimesSync(converted, btime, btime);
+    } catch (error) {
+        console.error(error.toString(), 'btime', btime);
+    }
+
 }
